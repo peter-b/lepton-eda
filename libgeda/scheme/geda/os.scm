@@ -24,7 +24,8 @@
 
   #:use-module (srfi srfi-1)
 
-  #:use-module (ice-9 regex))
+  #:use-module (ice-9 regex)
+  #:use-module (ice-9 match))
 
 (define-public platform %platform)
 
@@ -44,6 +45,17 @@
 (define-public path-separator (string path-separator-char))
 
 (define-public separator-char? file-name-separator?)
+
+(define-public build-path
+  (match-lambda*
+   ;; Add next to head and recurse
+   ((head next . tail)
+    (apply build-path
+           (string-append head file-name-separator-string next)
+           tail))
+
+   ;; Just return the path
+   ((path) path)))
 
 (define-public sys-data-dirs %sys-data-dirs)
 (define-public sys-config-dirs %sys-config-dirs)

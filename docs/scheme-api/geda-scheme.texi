@@ -2070,6 +2070,11 @@ environment variables on the host platform.
 A string containing @code{path-separator-char}.
 @end defvar
 
+@defun build-path components...
+Concatenates the @var{components} together, inserting the platform's
+directory separator character between each pair of components.
+@end defun
+
 @defun platform
 Returns a list of symbols describing the host platform.  The returned
 symbols may include:

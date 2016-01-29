@@ -16,11 +16,11 @@
 (define geda-rc-path (or (getenv "GEDADATARC") (getenv "GEDADATA")
                          ((@ (srfi srfi-1) last) (sys-config-dirs))))
 
-(define (build-path first . rest)
-  (if (null? rest) first
-      (apply build-path 
-	     (append (list (string-append first path-sep (car rest))) 
-		     (cdr rest)))))
+;(define (build-path first . rest)
+;  (if (null? rest) first
+;      (apply build-path 
+;	     (append (list (string-append first path-sep (car rest))) 
+;		     (cdr rest)))))
 
 ;; Returns #t if the given path is a regular file, otherwise #f.
 (define regular-file?
