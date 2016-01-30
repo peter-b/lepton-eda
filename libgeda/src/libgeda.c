@@ -51,6 +51,8 @@ void libgeda_init(void)
 
   eda_paths_init();
 
+  edascm_init ();
+
   s_clib_init();
   s_slib_init();
   s_menu_init();
@@ -59,8 +61,6 @@ void libgeda_init(void)
 
   g_register_libgeda_funcs();
   g_register_libgeda_dirs();
-
-  edascm_init ();
 }
 
 
