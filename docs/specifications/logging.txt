@@ -1,0 +1,188 @@
+==============
+ gEDA Logging
+==============
+
+:Author: Peter Brett
+:Status: Proposed Specification
+
+..
+  This document can be processed with docutils <http://docutils.sf.net>
+  to generate HTML or LaTeX.  However, the markup is designed to be
+  fully human-readable as-is.
+
+.. contents::
+..
+    1  Introduction
+    2  Backwards compatibility
+    3  Logging API
+      3.1  Generating log messages
+      3.2  Handling log messages
+    4  Related changes
+    5  References
+
+Introduction
+============
+
+This document describes a new logging system for gEDA tools,
+addressing some key shortcomings of the previous system:
+
+* No cleanup of log files: running the test suite a small number of
+  times would result in many thousands of files in the log directory
+
+* Log options not properly obeyed: tools would create logs files even
+  with logging  "disabled" in the configuration
+
+* No logging from Scheme: there was no way for Scheme code to pass
+  messages into the logging system
+
+* Poor differentiation of message levels and priorities in the gschem
+  log window, with all log metadata lost when creating a new window
+  and for log messages emitted before creating the log window.
+
+However, the previous system did have some advantages, which are
+preserved for the new system:
+
+* Race-free creation of log files
+
+* Easy format-based logging from C code using the GLib logging API [GLIB]_
+
+Backwards compatibility
+=======================
+
+Key backwards-compatibility considerations:
+
+* There are many parts of the gEDA/gaf C code which emit messages
+  using the GLib logging API. They must continue to work without
+  needing to be modified.
+
+* Logs should continue to be stored in the "logs" subdirectory of the
+  user configuration directory.
+
+Logging API
+===========
+
+The main changes to the logging API are in Scheme.  
+
+Generating log messages
+-----------------------
+
+Scheme function::
+
+  log! domain level message [format-args ...]
+
+Logs a new message with the specified domain, log level and contents.
+The ``domain`` should describe the source of the message, for example
+a string identifying the tool or module performing the logging
+(e.g. "gschem").
+
+The ``level`` should describe the log level -- for example, one of the
+symbols ``message``, ``warning``, ``critical``, ``error``, ``info`` or
+``debug``.  Error messages are fatal.
+
+A newline character is automatically appended to the message.
+
+Handling log messages
+---------------------
+
+All messages logged via ``log-format!`` or via the GLib logging API
+are passed to the current log handler.  The log handler is a closure
+that accepts three arguments::
+
+  handler domain level message
+
+Usually, it is better to override the log handler for *all* logging
+via the ``set-log-handler!`` procedure described below than to replace
+the ``log-format!`` procedure.
+
+Scheme function::
+
+  default-log-handler
+
+Returns the default log handler (which is just the default GLib log
+handler).
+
+Scheme function::
+
+  current-log-handler
+
+Returns the log handler that's currently being used.
+
+Scheme function::
+
+  install-log-handler! handler
+
+Install a procedure to be passed all subsequent log messages.
+
+Buffering log messages
+----------------------
+
+The log handler installed at start up buffers at least the last 512
+log messages in a ring buffer.
+
+Scheme function::
+
+  buffered-log-messages
+
+Return the contents of the log buffer.  Each element of the list
+returned by ``log-buffer`` has the form ``(time domain level
+message)``, where ``time`` is a SRFI-19 time value.
+
+Logging to log files
+--------------------
+
+Initially, no log file is generated.  When the logging subsystem
+begins logging to a file, the file is initialised with the current log
+buffer contents.  If the file already exists, log messages are
+appended to it.
+
+There are two types of log file: either to a new, per-tool log file in
+the default logging directory, or to an explicitly-specified log path.
+
+Scheme function::
+
+  begin-log-file! filename
+
+Begin logging to ``filename``, initialising it with the current
+contents of the log buffer.  If ``filename`` already exists, log
+messages are appended to it.
+
+Scheme function::
+
+  user-log-dir
+
+Return the directory where per-user logs are stored.
+
+Scheme function::
+
+  begin-default-log-file! toolname
+
+Begin logging to a new, uniquely-named log file for ``toolname`` in
+``user-log-dir``, initialising it with the current contents of the log
+buffer.  Returns the log filename.
+
+Related changes
+===============
+
+libgeda APIs
+------------
+
+* During libgeda initialisation, install Scheme log handler for GLib
+  messages, hook up the ``x_log_update_func`` and begin buffering.
+
+* ``s_log_init()`` should be modified to call
+  ``begin-default-log-file!``.
+
+* ``s_log_close()`` should be turned into a no-op on the assumption
+  that open log file handles will be cleaned up at exit.
+
+
+References
+==========
+
+.. [GLIB]    The GNOME Project, "GLib Reference Manual".
+             <http://library.gnome.org/devel/glib/stable/>
+
+..
+   Local Variables:
+   mode: rst
+   End:
