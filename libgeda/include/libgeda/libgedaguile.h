@@ -1,6 +1,6 @@
 /* gEDA - GPL Electronic Design Automation
  * libgeda - gEDA's library - Scheme API
- * Copyright (C) 2010-2014 Peter Brett <peter@peter-b.co.uk>
+ * Copyright (C) 2010-2014, 2016  Peter Brett <peter@peter-b.co.uk>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -73,3 +73,22 @@ void edascm_c_set_gc (SCM smob, int gc);
 
 /* Create a Scheme closure around a C function. */
 SCM edascm_c_make_closure (SCM (*func)(SCM, gpointer), gpointer user_data);
+
+/* Begin logging to the default log file for the tool */
+/* FIXME not yet libgeda public API */
+#if defined(__LIBGEDA_INTERNAL_API__)
+void edascm_c_begin_default_log_file(const gchar *toolname);
+#endif
+
+/* Call the specified callback for each buffered log message */
+/* FIXME not yet libgeda public API */
+#if defined(__LIBGEDA_INTERNAL_API__)
+void edascm_c_log_buffer_foreach(GLogFunc callback, gpointer user_data);
+#endif
+
+/* Install the specified callback as a log handler for all log
+ * messages */
+/* FIXME not yet libgeda public API */
+#if defined(__LIBGEDA_INTERNAL_API__)
+void edascm_c_install_log_handler(GLogFunc callback);
+#endif
